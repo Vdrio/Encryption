@@ -17,7 +17,8 @@ Once you have this installed and referenced in your project you just need to ref
 
 ## Code Examples
 Initialization Example:
-```using Vdrio.Security.Encryption;
+```csharp
+using Vdrio.Security.Encryption;
 
 //Initialize with random 256-bit encryption key
 AESEncryptor.Initialize();
@@ -32,7 +33,7 @@ AESEncryptor.Initialize(keyString);
 ```
 
 Encryption Example:
-```
+```csharp
 //Secret string to Encrypt
 string secretInfo = "mySuperSecretPassword";
 
@@ -44,15 +45,18 @@ key = AESEncryptor.CreateNewKey();
 
 //Encrypt secretInfo to Base 64 string. Encrypt can return Base 64 string or byte[] and has overloads to have byte[] or string inputs
 encryptedSecretInfo = AESEncryptor.EncryptTo64String(secretInfo, iv);
-```
+```  
+
 Values in the above example:
-key = "bvXeawD4xTVI9SmxjSXtBm8X/7hrdb0qdmQHXJO4cRc="
-iv = "sVhK0HBOyrRTcRALzbxecg=="
+key = "bvXeawD4xTVI9SmxjSXtBm8X/7hrdb0qdmQHXJO4cRc="  
+
+iv = "sVhK0HBOyrRTcRALzbxecg=="  
+
 encryptedSecretInfo = "rQN2NmmzqtL9uHx3p9Ajch28EOtYkmrjIbKp871kvuE="
 
 
 Decryption Example:
-```
+```csharp
 //Encrypted string to Decrypt from previous example
 encryptedSecretInfo = AESEncryptor.EncryptTo64String(secretInfo, iv);
 
@@ -62,9 +66,12 @@ AESEncryptor.SetKey(key);
 //Decrypt info using the iv (public key) from previous example
 string decryptedSecretInfo = AESEncryptor.Decrypt(encryptedSecretInfo, iv);
 ```
-Values in the above example:
-encryptedSecretInfo = "rQN2NmmzqtL9uHx3p9Ajch28EOtYkmrjIbKp871kvuE="
-decryptedSecretInfo = "mySuperSecretPassword"
+Values in the above example:  
+
+encryptedSecretInfo = "rQN2NmmzqtL9uHx3p9Ajch28EOtYkmrjIbKp871kvuE="  
+
+decryptedSecretInfo = "mySuperSecretPassword"  
+
 
 
 To-do list:
