@@ -71,6 +71,10 @@ namespace Vdrio.Security.Encryption
         /// </summary>
         public static string CreateNewKey()
         {
+            if (!Initialized)
+            {
+                Initialize();
+            }
             EncryptionManager.GenerateKey();
             KeyString = Convert.ToBase64String(EncryptionManager.Key);
             return KeyString;
@@ -127,6 +131,40 @@ namespace Vdrio.Security.Encryption
             byte[] encrypted = Encrypt(plainText, Convert.FromBase64String(iv));
             string encryptedString = Convert.ToBase64String(encrypted);
             return encryptedString;
+        }
+
+        /// <summary>
+        /// Encrypts plainBytes value with IV and returns encrypted bytes
+        /// </summary>
+        public static byte[] Encrypt(byte[] plainBytes, byte[] iv)
+        {
+            try
+            {
+                if (!Initialized)
+                {
+                    Initialize();
+                }
+                Encryptor = EncryptionManager.CreateEncryptor(EncryptionManager.Key, iv);
+                byte[] encrypted;
+                //byte[] data = Encoding.UTF8.GetBytes(plainText);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, Encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter sw = new StreamWriter(cs))
+                        {
+                            sw.Write(plainBytes);
+                        }
+                        encrypted = ms.ToArray();
+                    }
+                }
+                return encrypted;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return null;
+            }
         }
 
         /// <summary>
