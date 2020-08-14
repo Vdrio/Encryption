@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	  <PackageId>Vdrio.Security.Encryption</PackageId>
-	  <Version>0.5.1</Version>
+	  <Version>0.5.2</Version>
 	  <Authors>Lucas Glass</Authors>
 	  <Company>Vdrio Inc</Company>
 	  <Description>
