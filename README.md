@@ -47,7 +47,8 @@ key = AESEncryptor.CreateNewKey();
 encryptedSecretInfo = AESEncryptor.EncryptTo64String(secretInfo, iv);
 ```  
 
-Values in the above example:
+Values in the above example:  
+
 key = "bvXeawD4xTVI9SmxjSXtBm8X/7hrdb0qdmQHXJO4cRc="  
 
 iv = "sVhK0HBOyrRTcRALzbxecg=="  
