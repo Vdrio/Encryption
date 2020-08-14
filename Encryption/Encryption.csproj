@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	  <PackageId>Vdrio.Security.Encryption</PackageId>
+	  <Version>0.5.0</Version>
+	  <Authors>Lucas Glass</Authors>
+	  <Company>Vdrio Inc</Company>
+	  <Description>
+		  This library comes with a static AESEncryptor class that simplifies encryption and decryption using NIST Advanced Encryption Standard (AES).
+	  </Description>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+  </PropertyGroup>
+
+</Project>
