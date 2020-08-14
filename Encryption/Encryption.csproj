@@ -11,7 +11,12 @@
 	  </Description>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RootNamespace>Vdrio.Security.Encryption</RootNamespace>
-
+	  <LicenseUrl>https://github.com/Vdrio/Encryption/License.txt</LicenseUrl>
+	  <License>MIT</License>
+	  <Summary>Basic AES Encryption</Summary>
+	  <ProjectUrl>https://github.com/Vdrio/Encryption</ProjectUrl>
+	  <RepositoryUrl>https://github.com/Vdrio/Encryption</RepositoryUrl>
+	  <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
 </Project>
