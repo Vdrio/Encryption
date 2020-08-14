@@ -3,12 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	  <PackageId>Vdrio.Security.Encryption</PackageId>
-	  <Version>0.5.2</Version>
+	  <Version>0.5.3</Version>
 	  <Authors>Lucas Glass</Authors>
 	  <Company>Vdrio Inc</Company>
-	  <Description>
-		  This library comes with a static AESEncryptor class that simplifies 256-bit encryption and decryption using NIST Advanced Encryption Standard (AES).
-	  </Description>
+	  <Description>This library comes with a static AESEncryptor class that simplifies 256-bit encryption and decryption using NIST Advanced Encryption Standard (AES).
+	</Description>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RootNamespace>Vdrio.Security.Encryption</RootNamespace>
 	  <LicenseUrl>https://github.com/Vdrio/Encryption/License.txt</LicenseUrl>
@@ -17,6 +16,19 @@
 	  <ProjectUrl>https://github.com/Vdrio/Encryption</ProjectUrl>
 	  <RepositoryUrl>https://github.com/Vdrio/Encryption</RepositoryUrl>
 	  <RepositoryType>Github</RepositoryType>
+	  <PackageLicenseFile>License.txt</PackageLicenseFile>
+	  <PackageProjectUrl>https://github.com/Vdrio/Encryption</PackageProjectUrl>
+	  <Copyright>2020 Vdrio Inc</Copyright>
+	  <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="License.txt" />
+    <None Remove="License.txt" />
+    <None Include="License.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
