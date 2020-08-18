@@ -1,15 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	  <PackageId>Vdrio.Security.Encryption</PackageId>
+	  <PackageId>Vdrio.Security.Encryption.AzureTable</PackageId>
 	  <Version>0.6.0</Version>
 	  <Authors>Lucas Glass</Authors>
 	  <Company>Vdrio Inc</Company>
-	  <Description>This library comes with a static AESEncryptor class that simplifies 256-bit encryption and decryption using NIST Advanced Encryption Standard (AES).
-	</Description>
+	  <Description>
+		  This library comes with a class EncryptedTableEntity. This class is the same as TableEntity, but understands the [EncryptedProperty] attribute that will encrypt the data for that property when it goes to Azure Table.
+	  </Description>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <RootNamespace>Vdrio.Security.Encryption</RootNamespace>
+	  <RootNamespace>Vdrio.Security.Encryption.AzureTable</RootNamespace>
 	  <LicenseUrl>https://github.com/Vdrio/Encryption/License.txt</LicenseUrl>
 	  <License>MIT</License>
 	  <Summary>Basic AES Encryption</Summary>
@@ -23,16 +24,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="License.txt" />
-    <None Remove="License.txt" />
-    <None Include="License.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.7" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.7" />
+    <ProjectReference Include="..\Encryption\Encryption.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="License.txt">
+      <Pack>True</Pack>
+    </None>
   </ItemGroup>
 
 </Project>

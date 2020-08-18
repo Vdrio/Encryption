@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30406.217
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Encryption", "Encryption\Encryption.csproj", "{119745DD-F088-492C-9E1F-E3962924B6AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Encryption", "Encryption\Encryption.csproj", "{119745DD-F088-492C-9E1F-E3962924B6AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureTableEncryption", "AzureTableEncryption\AzureTableEncryption.csproj", "{71BC02EC-41BD-4A60-8461-DB8198B1B2E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleApp", "ExampleApp\ExampleApp.csproj", "{92551920-4E38-495A-8AF7-3A89E8CC3444}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{119745DD-F088-492C-9E1F-E3962924B6AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{119745DD-F088-492C-9E1F-E3962924B6AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{119745DD-F088-492C-9E1F-E3962924B6AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BC02EC-41BD-4A60-8461-DB8198B1B2E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BC02EC-41BD-4A60-8461-DB8198B1B2E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BC02EC-41BD-4A60-8461-DB8198B1B2E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BC02EC-41BD-4A60-8461-DB8198B1B2E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92551920-4E38-495A-8AF7-3A89E8CC3444}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92551920-4E38-495A-8AF7-3A89E8CC3444}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92551920-4E38-495A-8AF7-3A89E8CC3444}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92551920-4E38-495A-8AF7-3A89E8CC3444}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

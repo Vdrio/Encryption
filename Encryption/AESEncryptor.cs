@@ -12,9 +12,9 @@ namespace Vdrio.Security.Encryption
         static bool Initialized = false;
         static AesManaged EncryptionManager;
         static ICryptoTransform Encryptor;
-       // static readonly string keyString = "YzvNjApj2/p8rPt6nmrQXK4XXpjZGKIUHAgRwLmTvec=";
+        static readonly string keyString = "YzvNjApj2/p8rPt6nmrQXK4XXpjZGKIUHAgRwLmTvec=";
         static RandomNumberGenerator NumberGenerator;
-        static string KeyString { get; set; } = null;
+        static string KeyString { get; set; }// = keyString;
 
         /// <summary>
         /// Initialize must be called before encryption can be performed
@@ -24,10 +24,39 @@ namespace Vdrio.Security.Encryption
             EncryptionManager = new AesManaged();
             try
             {
-                if (string.IsNullOrWhiteSpace(KeyString))
+                if (File.Exists(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt")))
                 {
-                    EncryptionManager.GenerateKey();
-                    KeyString = Convert.ToBase64String(EncryptionManager.Key);
+                    byte[] key = File.ReadAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"));
+                        byte[] bytes = new byte[32];
+                    Random random = new Random(5649954 + 6247112);
+
+                    random.NextBytes(bytes);
+                    EncryptionManager.Key = bytes;
+                    byte[] iv = new byte[16];
+                    random.NextBytes(iv);
+                    Initialized = true;
+                    KeyString = Decrypt(key, iv);
+                    EncryptionManager.Key = Convert.FromBase64String(KeyString);
+                }
+                else if (string.IsNullOrWhiteSpace(KeyString))
+                {
+                    Random random = new Random(5649954 + 6247112);
+                    byte[] bytes = new byte[32];
+                    random.NextBytes(bytes);
+                    EncryptionManager.Key = bytes;
+                    byte[] iv = new byte[16];
+                    random.NextBytes(iv);
+                    byte[] userKey = new byte[32];
+                    random.NextBytes(userKey);
+                    KeyString = Convert.ToBase64String(userKey);
+                    Initialized = true;
+                    if (!Directory.Exists(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption")))
+                    {
+                        Directory.CreateDirectory(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption"));
+                    }
+                    byte[] encryptedBytes = Encrypt(Convert.ToBase64String(userKey), iv);
+                    System.IO.File.WriteAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"), encryptedBytes);
+                    EncryptionManager.Key = userKey;
                 }
                 else
                 {
@@ -36,8 +65,23 @@ namespace Vdrio.Security.Encryption
             }
             catch(Exception ex)
             {
-                EncryptionManager.GenerateKey();
-                KeyString = Convert.ToBase64String(EncryptionManager.Key);
+                Random random = new Random(5649954 + 6247112);
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                EncryptionManager.Key = bytes;
+                byte[] iv = new byte[16];
+                random.NextBytes(iv);
+                byte[] userKey = new byte[32];
+                random.NextBytes(userKey);
+                KeyString = Convert.ToBase64String(userKey);
+                Initialized = true;
+                if (!Directory.Exists(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption")))
+                {
+                    Directory.CreateDirectory(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption"));
+                }
+                byte[] encryptedBytes = Encrypt(Convert.ToBase64String(userKey), iv);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"), encryptedBytes);
+                EncryptionManager.Key = userKey;
                 Debug.WriteLine(ex);
             }
 
@@ -77,6 +121,19 @@ namespace Vdrio.Security.Encryption
             }
             EncryptionManager.GenerateKey();
             KeyString = Convert.ToBase64String(EncryptionManager.Key);
+            byte[] bytes = new byte[32];
+            Random random = new Random(5649954 + 6247112);
+            random.NextBytes(bytes);
+            EncryptionManager.Key = bytes;
+            byte[] iv = new byte[16];
+            random.NextBytes(iv);
+            if (!Directory.Exists(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption")))
+            {
+                Directory.CreateDirectory(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption"));
+            }
+            byte[] encryptedBytes = Encrypt(KeyString, iv);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"), encryptedBytes);
+            EncryptionManager.Key = Convert.FromBase64String(KeyString);
             return KeyString;
         }
 
@@ -89,6 +146,7 @@ namespace Vdrio.Security.Encryption
             {
                 Initialize();
             }
+            KeyString = Convert.ToBase64String(EncryptionManager.Key);
             return KeyString;
         }
 
@@ -103,8 +161,20 @@ namespace Vdrio.Security.Encryption
             }
             try
             {
-                EncryptionManager.Key = Convert.FromBase64String(keyString);
+                Random random = new Random(5649954 + 6247112);
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                EncryptionManager.Key = bytes;
+                byte[] iv = new byte[16];
+                random.NextBytes(iv);
                 KeyString = keyString;
+                if (!Directory.Exists(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption")))
+                {
+                    Directory.CreateDirectory(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption"));
+                }
+                byte[] encryptedBytes = Encrypt(keyString, iv);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"), encryptedBytes);
+                EncryptionManager.Key = Convert.FromBase64String(keyString);
                 return KeyString;
             }
             catch(Exception ex)
