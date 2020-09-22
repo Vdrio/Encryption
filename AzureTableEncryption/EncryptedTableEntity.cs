@@ -4,47 +4,51 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using Vdrio.Security.Encryption;
 
 namespace Vdrio.Security.Encryption.AzureTable
 {
+    [EncryptionKey(24, 8, 3)]
     public class EncryptedTableEntity : ITableEntity
     {
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public DateTimeOffset Timestamp { get; set; }
         public string ETag { get; set; }
-
-        public string IV { get
-            {
-                if (string.IsNullOrEmpty(iv))
-                {
-                    iv = AESEncryptor.CreateInitializor();
-                }
-                return iv;
-            } set { iv = value; } }
-        private string iv;
+        public long EncryptionTicks { get; set; }
 
         public void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
         {
 #if RT
             IEnumerable<PropertyInfo> myProperties = entity.GetType().GetRuntimeProperties();
+            var classAttributes = System.Attribute.GetCustomAttributes(entity.GetType());
 #else
             IEnumerable<PropertyInfo> myProperties = this.GetType().GetProperties();
+            var classAttributes = System.Attribute.GetCustomAttributes(this.GetType());
 #endif
-            PropertyInfo iv = myProperties.First(x => x.Name == "IV");
-            iv.SetValue(this, properties["IV"]?.StringValue);
+            EncryptionTicks = properties["EncryptionTicks"]?.Int64Value ?? -1;
+            EncryptionKey keyAttribute = (EncryptionKey)classAttributes.FirstOrDefault(x => !((x as EncryptionKey)?.IsDefaultValue ?? true));
+            if (keyAttribute == null)
+            {
+                keyAttribute = (EncryptionKey)classAttributes.First(x => (x as EncryptionKey) != null);
+                keyAttribute = keyAttribute ?? new EncryptionKey(24, 8, 3);
+            }
+
             foreach (PropertyInfo property in myProperties)
             {
+                
                 // reserved properties
                 if (property.Name == "PartitionKey" ||
                     property.Name == "RowKey" ||
                     property.Name == "Timestamp" ||
-                    property.Name == "ETag")
+                    property.Name == "ETag" || property.Name == "EncryptionTicks")
                 {
                     continue;
                 }
+                
                 // Enforce public getter / setter
 #if RT
                 if (property.SetMethod == null || !property.SetMethod.IsPublic || property.GetMethod == null || !property.GetMethod.IsPublic)
@@ -63,7 +67,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                 }
 
                 EntityProperty entityProperty = properties[property.Name];
-
+                
 
 
                 if (IsPropertyNull(entityProperty))
@@ -77,10 +81,23 @@ namespace Vdrio.Security.Encryption.AzureTable
                     {
                         if (entityProperty.PropertyType == EdmType.String)
                         {
-                            propValue = JsonConvert.DeserializeObject(AESEncryptor.Decrypt(entityProperty.StringValue, IV), property.PropertyType);
+                            if (keyAttribute.isSingleKey)
+                            {
+                                using (var manager = new EncryptionManager(keyAttribute.Key))
+                                {
+                                    propValue = JsonConvert.DeserializeObject(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue), property.PropertyType);
+                                }
+                            }
+                            else
+                            {
+                                using (var manager = new EncryptionManager(keyAttribute.A, keyAttribute.B, keyAttribute.C))
+                                {
+                                    propValue = JsonConvert.DeserializeObject(manager.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue, EncryptionTicks), property.PropertyType);
+                                }
+                            }
                         }
-
-                    }catch(Exception ex)
+                    }
+                    catch(Exception ex)
                     {
                         Console.Write(ex);
                     }
@@ -99,7 +116,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                 {
                                     continue;
                                 }
-                                var propertyValue = AESEncryptor.Decrypt(entityProperty.StringValue, IV);
+                                var propertyValue = AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue);
                                 property.SetValue(this, propertyValue, null);
                                 break;
                             case EdmType.Binary:
@@ -108,7 +125,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                     continue;
                                 }
 
-                                var binaryValue = JsonConvert.DeserializeObject<byte[]>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                var binaryValue = JsonConvert.DeserializeObject<byte[]>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                 property.SetValue(this, binaryValue, null);
                                 break;
                             case EdmType.Boolean:
@@ -122,12 +139,12 @@ namespace Vdrio.Security.Encryption.AzureTable
                             case EdmType.DateTime:
                                 if (property.PropertyType == typeof(DateTimeOffset))
                                 {
-                                    var dateValue = JsonConvert.DeserializeObject<DateTimeOffset>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                    var dateValue = JsonConvert.DeserializeObject<DateTimeOffset>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                     property.SetValue(this, dateValue.UtcDateTime, null);
                                 }
                                 else if (property.PropertyType == typeof(DateTimeOffset))
                                 {
-                                    var dateValue = JsonConvert.DeserializeObject<DateTime>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                    var dateValue = JsonConvert.DeserializeObject<DateTime>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                     property.SetValue(this, dateValue.ToUniversalTime(), null);
                                 }
 
@@ -139,7 +156,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                     continue;
                                 }
 
-                                var doubleValue = JsonConvert.DeserializeObject<double>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                var doubleValue = JsonConvert.DeserializeObject<double>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                 property.SetValue(this, doubleValue, null);
                                 break;
                             case EdmType.Guid:
@@ -148,7 +165,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                     continue;
                                 }
 
-                                var guidValue = JsonConvert.DeserializeObject<Guid>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                var guidValue = JsonConvert.DeserializeObject<Guid>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                 property.SetValue(this, guidValue, null);
                                 break;
                             case EdmType.Int32:
@@ -157,7 +174,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                     continue;
                                 }
 
-                                var intValue = JsonConvert.DeserializeObject<int>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                var intValue = JsonConvert.DeserializeObject<int>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                 property.SetValue(this, intValue, null);
                                 break;
                             case EdmType.Int64:
@@ -165,7 +182,7 @@ namespace Vdrio.Security.Encryption.AzureTable
                                 {
                                     continue;
                                 }
-                                var intValue2 = JsonConvert.DeserializeObject<int>(AESEncryptor.Decrypt(entityProperty.StringValue, IV));
+                                var intValue2 = JsonConvert.DeserializeObject<int>(AESEncryptor.Decrypt(entityProperty.StringValue, properties[property.Name + "IV"].StringValue));
                                 property.SetValue(this, intValue2, null);
                                 break;
 
@@ -262,9 +279,19 @@ namespace Vdrio.Security.Encryption.AzureTable
 
 #if RT
             IEnumerable<PropertyInfo> objectProperties = entity.GetType().GetRuntimeProperties();
+            var classAttributes = System.Attribute.GetCustomAttributes(entity.GetType());
 #else
             IEnumerable<PropertyInfo> objectProperties = this.GetType().GetProperties();
+            var classAttributes = System.Attribute.GetCustomAttributes(this.GetType());
 #endif
+            EncryptionTicks = DateTime.Now.Ticks;
+
+            EncryptionKey keyAttribute = (EncryptionKey)classAttributes.FirstOrDefault(x => !((x as EncryptionKey)?.IsDefaultValue ?? true));
+            if (keyAttribute == null)
+            {
+                keyAttribute = (EncryptionKey)classAttributes.First(x => (x as EncryptionKey) != null);
+                keyAttribute = keyAttribute ?? new EncryptionKey(24, 8, 3);
+            }
 
             foreach (PropertyInfo property in objectProperties)
             {
@@ -290,7 +317,27 @@ namespace Vdrio.Security.Encryption.AzureTable
                 EntityProperty newProperty = null;
                 if (property.GetCustomAttribute(typeof(EncryptedProperty)) != null)
                 {
-                    newProperty = CreateEntityPropertyFromObject(Convert.ToBase64String(AESEncryptor.Encrypt(JsonConvert.SerializeObject(property.GetValue(this, null)), Convert.FromBase64String(IV))), false);
+                    EntityProperty ivProperty = null;
+                    if (keyAttribute.isSingleKey)
+                    {
+                        using (var manager = new EncryptionManager(keyAttribute.Key))
+                        {
+                            ivProperty = CreateEntityPropertyFromObject(AESEncryptor.CreateInitializor(), false);
+                            newProperty = CreateEntityPropertyFromObject(manager.Encrypt(JsonConvert.SerializeObject(property.GetValue(this, null)), ivProperty.StringValue), false);
+                        }
+                    }
+                    else
+                    {
+                        using (var manager = new EncryptionManager(keyAttribute.A, keyAttribute.B, keyAttribute.C))
+                        {
+                            ivProperty = CreateEntityPropertyFromObject(AESEncryptor.CreateInitializor(), false);
+                            newProperty = CreateEntityPropertyFromObject(manager.Encrypt(JsonConvert.SerializeObject(property.GetValue(this, null)), ivProperty.StringValue, EncryptionTicks), false);
+                        }
+                    }
+                    if (newProperty != null)
+                    {
+                        retVals.Add(property.Name + "IV", ivProperty);
+                    }
                 }
                 else
                 {

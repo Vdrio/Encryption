@@ -1,5 +1,5 @@
-﻿# Vdrio AES Encryption
-> Simplify your 256-bit AES Encryption with one static class and easy-to-use methods
+﻿# Vdrio .NET Standard AES Encryption
+> Simplify your 256-bit AES Encryption for all your .NET projects
 
 ## Table of contents
 * [General info](#general-info)
@@ -13,71 +13,83 @@ I use AES Encryption in most of my projects and this makes it much easier to get
 
 
 ## Setup
-Once you have this installed and referenced in your project you just need to referece Vdrio.Security.Encryption in the files you wish to use it in. 
+Once you have this installed and referenced in your project you just need to referece Vdrio.Security.Encryption in the files you wish to use it in. The previous version utilized a static AESEncryptor class. This static class still works and still contains some useful functions (see examples), but it is now recommended to use the EncryptionManager class to perform encryption and decryption. See examples for usage.
 
 ## Code Examples
-Initialization Example:
+
+Encryption Examples:
 ```csharp
-using Vdrio.Security.Encryption;
 
-//Initialize with random 256-bit encryption key
-AESEncryptor.Initialize();
+    //the secret info we are going to encrypt
+    string secretInfo = "mySuperSecretPassword";
 
-//Gets the private key so you can save it for decryption later
-string key = AESEncryptor.GetCurrentKey();
+    string encryptedSecretInfo = null;
 
-//Initialize with a known private key in the format of Base64 string
-AESEncryptor.Initialize(keyString);
+    //this is your 64-bit key string
+    string myKeyString = AESEncryptor.CreateNewKey();
 
-//Note: initialization will happen automatically when any method is called
+    using (var manager = new EncryptionManager(myKeyString))
+    {
+        //This is your initializor, or public key
+        string iv = AESEncryptor.CreateInitializor();
+                 
+        //This is how you encrypt with your specified key and iv
+        encryptedSecretInfo = manager.Encrypt(secretInfo, iv);
+    }
+
+
+    //you can also encrypt with private keys of int a, b and c
+    using (var manager = new EncryptionManager(100,50,10))
+    {
+        //This is your initializor, or public key
+        string iv = AESEncryptor.CreateInitializor();
+
+        //This is your second public key, used with a, b, and c to compute the private key
+        long ticks = DateTime.Now.Ticks;
+
+        //This is how you encrypt with your specified key and iv
+        encryptedSecretInfo = manager.Encrypt(secretInfo, iv, ticks);
+    }
+
+    //Make sure you save your public and private keys so you can decrypt the data!
+
 ```
 
-Encryption Example:
-```csharp
-//Secret string to Encrypt
-string secretInfo = "mySuperSecretPassword";
-
-//Create Initialization Vector (aka Public Key)
-iv = AESEncryptor.CreateInitializor();
-
-//Create new public key and keep reference
-key = AESEncryptor.CreateNewKey();
-
-//Encrypt secretInfo to Base 64 string. Encrypt can return Base 64 string or byte[] and has overloads to have byte[] or string inputs
-encryptedSecretInfo = AESEncryptor.EncryptTo64String(secretInfo, iv);
-```  
-
-Values in the above example:  
-
-key = "bvXeawD4xTVI9SmxjSXtBm8X/7hrdb0qdmQHXJO4cRc="  
-
-iv = "sVhK0HBOyrRTcRALzbxecg=="  
-
-encryptedSecretInfo = "rQN2NmmzqtL9uHx3p9Ajch28EOtYkmrjIbKp871kvuE="
 
 
 Decryption Example:
 ```csharp
-//Encrypted string to Decrypt from previous example
-encryptedSecretInfo = AESEncryptor.EncryptTo64String(secretInfo, iv);
+    //When trying to decrypt your data, you will need your public key (iv) and optionally a second public key (time in ticks)
+    public static string DecryptMySecret(string encryptedData, string iv, long ticks)
+    {
+        //this is your 64-bit key string
+        string myKeyString = AESEncryptor.CreateNewKey();
 
-//Set key to previous used key (only necessary when switching Private Keys)
-AESEncryptor.SetKey(key);
+        string decryptedSecretInfo = null;
 
-//Decrypt info using the iv (public key) from previous example
-string decryptedSecretInfo = AESEncryptor.Decrypt(encryptedSecretInfo, iv);
+        //create EncryptionManager with your key string
+        using (var manager = new EncryptionManager(myKeyString))
+        {
+            //This is how you decrypt with your keyString (private key) and iv (public key)
+            decryptedSecretInfo = manager.Decrypt(encryptedData, iv);
+        }
+
+
+        //you can also decrypt with private keys of int a, b and c
+        using (var manager = new EncryptionManager(100, 50, 10))
+        {
+            //This is how you decrypt with your specified keys, iv and ticks
+            decryptedSecretInfo = manager.Decrypt(encryptedData, iv, ticks);
+        }
+
+        return decryptedSecretInfo;
+    }
 ```
-Values in the above example:  
-
-encryptedSecretInfo = "rQN2NmmzqtL9uHx3p9Ajch28EOtYkmrjIbKp871kvuE="  
-
-decryptedSecretInfo = "mySuperSecretPassword"  
 
 
 
 To-do list:
-* Ability to store keys in encrypted file at specified location
-* Non-static implementation to make it easier to use multiple private keys
+* Do more testing before official v1.0 release
 
 ## Status
 Project is: _in progress_

@@ -5,6 +5,8 @@ using System.Text;
 namespace Vdrio.Security.Encryption.AzureTable
 {
 #if DEBUG
+
+    [EncryptionKey(100, 20, 68)]
     public class EncryptedObject:EncryptedTableEntity
     {
 

@@ -3,17 +3,17 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	  <PackageId>Vdrio.Security.Encryption.AzureTable</PackageId>
-	  <Version>0.6.0</Version>
+	  <Version>0.9.1</Version>
 	  <Authors>Lucas Glass</Authors>
 	  <Company>Vdrio Inc</Company>
 	  <Description>
-		  This library comes with a class EncryptedTableEntity. This class is the same as TableEntity, but understands the [EncryptedProperty] attribute that will encrypt the data for that property when it goes to Azure Table.
+		  This library comes with a class EncryptedTableEntity. This class is the same as TableEntity, but understands the [EncryptedProperty] attribute that will encrypt the data for that property when it goes to Azure Table. Also, use the [EncryptionKey(a,b,c)] attribute on the class that inherits EncryptedTableEntity to set the encryption key.
 	  </Description>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <RootNamespace>Vdrio.Security.Encryption.AzureTable</RootNamespace>
 	  <LicenseUrl>https://github.com/Vdrio/Encryption/License.txt</LicenseUrl>
 	  <License>MIT</License>
-	  <Summary>Basic AES Encryption</Summary>
+	  <Summary>AES Encryption for Azure Table Entities</Summary>
 	  <ProjectUrl>https://github.com/Vdrio/Encryption</ProjectUrl>
 	  <RepositoryUrl>https://github.com/Vdrio/Encryption</RepositoryUrl>
 	  <RepositoryType>Github</RepositoryType>
@@ -32,9 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="License.txt">
-      <Pack>True</Pack>
-    </None>
+	  <None Remove="License.txt" />
+	  <None Remove="License.txt" />
+	  <None Include="License.txt">
+		  <Pack>True</Pack>
+		  <PackagePath></PackagePath>
+	  </None>
   </ItemGroup>
 
 </Project>

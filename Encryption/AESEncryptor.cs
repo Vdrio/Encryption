@@ -11,6 +11,10 @@ namespace Vdrio.Security.Encryption
     {
         static bool Initialized = false;
         static AesManaged EncryptionManager;
+
+        public static int A { get; private set; } = 24;
+        public static int B { get; private set; } = 8;
+        public static int C { get; private set; } = 3;
         static ICryptoTransform Encryptor;
         static readonly string keyString = "YzvNjApj2/p8rPt6nmrQXK4XXpjZGKIUHAgRwLmTvec=";
         static RandomNumberGenerator NumberGenerator;
@@ -109,6 +113,17 @@ namespace Vdrio.Security.Encryption
             }
         }
 
+        /// <summary>
+        /// Initialize(a,b,c) will initialize the ticks based encryptor with the specified a, b, and c parameters
+        /// </summary>
+        public static bool Initialize(int a, int b, int c)
+        {
+            A = a;
+            B = b;
+            C = c;
+            return true;
+        }
+
 
         /// <summary>
         /// Creates, applies and returns new Base 64 string
@@ -135,6 +150,19 @@ namespace Vdrio.Security.Encryption
             System.IO.File.WriteAllBytes(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Encryption", "aesencryptionkey.txt"), encryptedBytes);
             EncryptionManager.Key = Convert.FromBase64String(KeyString);
             return KeyString;
+        }
+
+        /// <summary>
+        /// Creates and returns new Base 64 string
+        /// </summary>
+        public static string CreateNewKey(this EncryptionManager manager)
+        {
+            if (!Initialized)
+            {
+                Initialize();
+            }
+            EncryptionManager.GenerateKey();
+            return Convert.ToBase64String(EncryptionManager.Key);
         }
 
         /// <summary>
@@ -224,6 +252,96 @@ namespace Vdrio.Security.Encryption
                         using (StreamWriter sw = new StreamWriter(cs))
                         {
                             sw.Write(plainBytes);
+                        }
+                        encrypted = ms.ToArray();
+                    }
+                }
+                return encrypted;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Encrypts plainBytes value with IV and returns encrypted bytes
+        /// </summary>
+        public static byte[] Encrypt(byte[] plainBytes, byte[] iv, long ticks)
+        {
+            try
+            {
+                if (!Initialized)
+                {
+                    Initialize();
+                }
+                Random random;
+                if (ticks % 2 == 0)
+                {
+                    random = new Random((new Random(7 * C)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * A)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                else
+                {
+                    random = new Random((new Random(7 * A)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * C)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                Encryptor = EncryptionManager.CreateEncryptor(bytes, iv);
+                byte[] encrypted;
+                //byte[] data = Encoding.UTF8.GetBytes(plainText);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, Encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter sw = new StreamWriter(cs))
+                        {
+                            sw.Write(plainBytes);
+                        }
+                        encrypted = ms.ToArray();
+                    }
+                }
+                return encrypted;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Encrypts plainText value with IV and returns encrypted bytes
+        /// </summary>
+        public static byte[] Encrypt(string plainText, string iv, long ticks)
+        {
+            try
+            {
+                if (!Initialized)
+                {
+                    Initialize();
+                }
+                Random random;
+                if (ticks % 2 == 0)
+                {
+                    random = new Random((new Random(7 * C)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * A)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                else
+                {
+                    random = new Random((new Random(7 * A)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * C)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                Encryptor = EncryptionManager.CreateEncryptor(bytes, Convert.FromBase64String(iv));
+                byte[] encrypted;
+                //byte[] data = Encoding.UTF8.GetBytes(plainText);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (CryptoStream cs = new CryptoStream(ms, Encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter sw = new StreamWriter(cs))
+                        {
+                            sw.Write(plainText);
                         }
                         encrypted = ms.ToArray();
                     }
@@ -352,9 +470,123 @@ namespace Vdrio.Security.Encryption
         }
 
         /// <summary>
+        /// Decrypts cipherText value with IV and ticks and returns decrypted string
+        /// </summary>
+        public static string Decrypt(string cipherText, string iv, long ticks)
+        {
+            if (!Initialized)
+            {
+                Initialize();
+            }
+            try
+            {
+                string plaintext = null;
+                // Create AesManaged    
+                Random random;
+                if (ticks % 2 == 0)
+                {
+                    random = new Random((new Random(7 * C)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * A)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                else
+                {
+                    random = new Random((new Random(7 * A)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * C)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                // Create a decryptor    
+                ICryptoTransform decryptor = EncryptionManager.CreateDecryptor(bytes, Convert.FromBase64String(iv));
+                // Create the streams used for decryption.    
+                using (MemoryStream ms = new MemoryStream(Convert.FromBase64String(cipherText)))
+                {
+                    // Create crypto stream    
+                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                    {
+                        // Read crypto stream    
+                        using (StreamReader reader = new StreamReader(cs))
+                        {
+                            plaintext = reader.ReadToEnd();
+                        }
+
+                    }
+                }
+
+                return plaintext;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// Decrypts cipherText value with IV and ticks and returns decrypted bytes
+        /// </summary>
+        public static byte[] DecryptToBytes(byte[] cipherText, byte[] iv, long ticks)
+        {
+            if (!Initialized)
+            {
+                Initialize();
+            }
+            try
+            {
+                string plaintext = null;
+                // Create AesManaged    
+                Random random;
+                if (ticks % 2 == 0)
+                {
+                    random = new Random((new Random(7 * C)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * A)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                else
+                {
+                    random = new Random((new Random(7 * A)).Next(1000000000) + (new Random(11 * B)).Next(1000000000) + (new Random(13 * C)).Next(1000000000) + (int)(ticks % 1000000000));
+                }
+                byte[] bytes = new byte[32];
+                random.NextBytes(bytes);
+                // Create a decryptor    
+                ICryptoTransform decryptor = EncryptionManager.CreateDecryptor(bytes, iv);
+                // Create the streams used for decryption.    
+                using (MemoryStream ms = new MemoryStream(cipherText))
+                {
+                    // Create crypto stream    
+                    using (CryptoStream cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                    {
+                        // Read crypto stream    
+                        using (StreamReader reader = new StreamReader(cs))
+                        {
+                            plaintext = reader.ReadToEnd();
+                        }
+
+                    }
+                }
+
+                return Convert.FromBase64String(plaintext);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Creates a new Initialization Vector (IV) and returns it as Base 64 string
         /// </summary>
         public static string CreateInitializor()
+        {
+            if (!Initialized)
+            {
+                Initialize();
+            }
+            EncryptionManager.GenerateIV();
+            return Convert.ToBase64String(EncryptionManager.IV);
+        } 
+
+        /// <summary>
+        /// Creates a new Initialization Vector (IV) and returns it as Base 64 string
+        /// </summary>
+        public static string CreateInitializor(this EncryptionManager manager)
         {
             if (!Initialized)
             {
@@ -368,6 +600,19 @@ namespace Vdrio.Security.Encryption
         /// Creates a new Initialization Vector (IV) and returns it as bytes
         /// </summary>
         public static byte[] CreateInitializorBytes()
+        {
+            if (!Initialized)
+            {
+                Initialize();
+            }
+            EncryptionManager.GenerateIV();
+            return EncryptionManager.IV;
+        }
+
+        /// <summary>
+        /// Creates a new Initialization Vector (IV) and returns it as bytes
+        /// </summary>
+        public static byte[] CreateInitializorBytes(this EncryptionManager manager)
         {
             if (!Initialized)
             {

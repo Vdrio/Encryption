@@ -1,10 +1,10 @@
-﻿using AzureTableEncryption;
-using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Azure.Cosmos.Table.Queryable;
 using System;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Vdrio.Security.Encryption.AzureTable;
 
 namespace ExampleApp
 {
