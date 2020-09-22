@@ -19,7 +19,7 @@ namespace ExampleApp
 
         public static async void GetData()
         {
-            var storageAccount = new CloudStorageAccount(new StorageCredentials("vdriowebsite", "pl5q4hjVfpMVd1dBvJoE5edR5zteo9gzgvkwHdECFfeXZpfxNPQ6adH0EPbhPdf6fEZ4hmFM+EDZ9ex/j/Nx5w=="), true);
+            var storageAccount = new CloudStorageAccount(new StorageCredentials("[storage account name]", "[storage account key]"), true);
             var tableClient = storageAccount.CreateCloudTableClient();
             var cryptoTable = tableClient.GetTableReference("TestEncryption");
             await cryptoTable.CreateIfNotExistsAsync();
@@ -43,7 +43,7 @@ namespace ExampleApp
         {
             try
             {
-                var storageAccount = new CloudStorageAccount(new StorageCredentials("vdriowebsite", "pl5q4hjVfpMVd1dBvJoE5edR5zteo9gzgvkwHdECFfeXZpfxNPQ6adH0EPbhPdf6fEZ4hmFM+EDZ9ex/j/Nx5w=="), true);
+                var storageAccount = new CloudStorageAccount(new StorageCredentials("[storage account name]", "[storage account key]"), true);
                 var tableClient = storageAccount.CreateCloudTableClient();
                 var cryptoTable = tableClient.GetTableReference("TestEncryption");
                 await cryptoTable.CreateIfNotExistsAsync();
